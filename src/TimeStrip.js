@@ -13,16 +13,17 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const spinRef = useRef(0);
 
     const size = [viewport.width, 0.5, 0.1];
-    const initialRotation = THREE.MathUtils.degToRad(-20);
+    const initialRotation = THREE.MathUtils.degToRad(-40);
 
     useFrame((state, delta) => {
         if (groupRef.current) {
             // Simple downward movement
             groupRef.current.position.y -= delta * 2;
 
-            // Rotation logic
+            // Curve-like rotation logic
             const t = Math.max(0, Math.min(1, 1 - groupRef.current.position.y / initialPosition[1]));
-            groupRef.current.rotation.x = initialRotation * (1 - t);
+            const curveRotation = initialRotation * (1 - t) + THREE.MathUtils.degToRad(0) * t;
+            groupRef.current.rotation.x = curveRotation;
 
             // Hover spin effect
             if (hovered) {
@@ -30,7 +31,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 groupRef.current.rotation.x = Math.sin(spinRef.current) * Math.PI / 4; // 45 degree rotation
             } else {
                 spinRef.current = 0;
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, delta * 4);
+                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, curveRotation, delta * 4);
             }
 
             // Fading logic
