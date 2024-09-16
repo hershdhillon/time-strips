@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/cannon';
 import TimeStrip from './TimeStrip';
-import Floor from './Floor';
-import {Environment} from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 
 const Scene = () => {
     const [strips, setStrips] = useState([]);
@@ -16,18 +15,18 @@ const Scene = () => {
     const addStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 + 2 ; // Spawn above the viewport
-        const spawnX = viewport.width / 10; // Random X position
+        const spawnY = viewport.height / 2 + 2; // Spawn above the viewport
+        const spawnX = 0; // Center of the screen
 
         setStrips((prevStrips) => [
             {
                 id: now.getTime(),
                 time: formattedTime,
-                position: [0, spawnY, 0],
+                position: [spawnX, spawnY, 0],
             },
             ...prevStrips,
         ]);
-    }, [viewport.height, viewport.width]);
+    }, [viewport.height]);
 
     useEffect(() => {
         let interval;
