@@ -5,7 +5,10 @@ import Scene from './Scene'
 
 const TimeWaterfall = () => {
     return (
-        <Canvas shadows>
+        <Canvas
+            shadows
+            camera={{ position: [0, 0, 50], fov: 20 }}
+        >
             <Scene />
         </Canvas>
     )
