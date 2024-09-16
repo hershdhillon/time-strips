@@ -95,7 +95,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             <Text3D
                 ref={textRef}
                 fontSize={0.2}
-                scale={[1, 1, 1.3]}
+                scale={[1, 1, 1.5]}
                 height={0.1}
                 bevelEnabled
                 color="black"
