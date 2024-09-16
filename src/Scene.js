@@ -5,7 +5,7 @@ import { Physics, usePlane } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
 
 const Floor = () => {
-    const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], position: [0, -2, 0] }))
+    const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], position: [0, -5, 0] }))
     return (
         <mesh ref={ref} receiveShadow>
             <planeGeometry args={[20, 20]} />
@@ -24,11 +24,11 @@ const Scene = () => {
                 {
                     id: now.getTime(),
                     time: now.toLocaleTimeString(),
-                    position: [Math.random() * 8 - 4, 10, Math.random() * 2 - 1], // Reduced height to 5
+                    position: [Math.random() * 8 - 4, 10, Math.random() * 2 - 1],
                 },
                 ...prevStrips.slice(0, 49), // Limit to 50 strips
             ])
-        }, 1000)  // New strip every 2 seconds
+        }, 1000)  // New strip every second
 
         return () => clearInterval(interval)
     }, [])
@@ -39,7 +39,7 @@ const Scene = () => {
 
     return (
         <Physics>
-            <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={60} />
+            <PerspectiveCamera makeDefault position={[0, 5, 10]} fov={60} />
             <OrbitControls />
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} castShadow />
