@@ -70,7 +70,7 @@ const Scene = () => {
             tolerance={0.0001}
             gravity={[0, -9.81, 0]}
             defaultContactMaterial={{ friction: 0.5, restitution: 0.2 }}
-        >            <Floor />
+        >
             <Environment preset={"warehouse"} environmentIntensity={2}/>
             {strips.map((strip) => (
                 <TimeStrip
