@@ -11,7 +11,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const opacityRef = useRef(1);
 
     const size = [viewport.width, 0.5, 0.1];
-    const initialRotation = THREE.MathUtils.degToRad(-10);
+    const initialRotation = THREE.MathUtils.degToRad(-20);
 
     useFrame((state, delta) => {
         if (groupRef.current) {
