@@ -77,7 +77,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             // Adjust box visual scale to match text dimensions
             const newWidth = viewport.width + 1;
             const newHeight = scaledTextHeight + 1;
-            boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 3);
+            boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 5);
             boxRef.current.position.x = 0;
             boxRef.current.position.y = 0;
             boxRef.current.position.z = 0;

@@ -16,7 +16,7 @@ const Scene = () => {
     const addStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 ; // Spawn above the viewport
+        const spawnY = viewport.height / 2 + 1 ; // Spawn above the viewport
         const spawnX = viewport.width / 10; // Random X position
 
         setStrips((prevStrips) => [
@@ -65,8 +65,12 @@ const Scene = () => {
     };
 
     return (
-        <Physics iterations={10} tolerance={0.0001} defaultContactMaterial={{ restitution: 0.2, friction: 0.5 }}>
-            <Floor />
+        <Physics
+            iterations={20}
+            tolerance={0.0001}
+            gravity={[0, -9.81, 0]}
+            defaultContactMaterial={{ friction: 0.5, restitution: 0.2 }}
+        >            <Floor />
             <Environment preset={"warehouse"} environmentIntensity={2}/>
             {strips.map((strip) => (
                 <TimeStrip
