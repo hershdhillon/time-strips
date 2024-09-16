@@ -88,23 +88,19 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
     return (
         <group ref={ref}>
-            <mesh ref={boxRef}>
-                <boxGeometry args={size} />
-                <meshStandardMaterial color="white"   />
-            </mesh>
             <Text3D
                 ref={textRef}
                 fontSize={0.2}
-                scale={[1, 1, 1.5]}
+                scale={[1, 1, 0.5]}
                 height={0.1}
                 bevelEnabled
-                color="black"
+                color="white"
                 anchorX="center"
                 anchorY="middle"
                 font="/Early GameBoy_Regular.json"
             >
                 {time}
-                <meshStandardMaterial color="black" />
+                <meshStandardMaterial color="white" />
             </Text3D>
         </group>
     );
