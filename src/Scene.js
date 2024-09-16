@@ -52,7 +52,7 @@ const Scene = () => {
         const day = days[date.getDay()]
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-        return `${day} ${dateStr} ${timeStr}`
+        return `${day} ${dateStr} ${timeStr}`.toUpperCase()
     }
 
     const removeStrip = (id) => {

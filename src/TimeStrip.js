@@ -14,7 +14,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const size = [viewport.width, 1, 0.1];
 
     // Initial rotation of -30 degrees in radians
-    const initialRotation = THREE.MathUtils.degToRad(-10);
+    const initialRotation = THREE.MathUtils.degToRad(-5);
 
     const [ref, api] = useBox(() => ({
         mass: 0.1,
@@ -70,7 +70,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             textRef.current.position.z = 0.06; // Slightly in front of the box
 
             // Adjust box visual scale to match text dimensions
-            const newWidth = viewport.width;
+            const newWidth = viewport.width + 20;
             const newHeight = scaledTextHeight + 0.3;
             boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 1);
             boxRef.current.position.x = 0;
