@@ -16,8 +16,8 @@ const Scene = () => {
     const addStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 + 1 ; // Spawn above the viewport
-        const spawnX = viewport.width; // Random X position
+        const spawnY = viewport.height / 2 + 2 ; // Spawn above the viewport
+        const spawnX = viewport.width / 10; // Random X position
 
         setStrips((prevStrips) => [
             {
