@@ -30,7 +30,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 groupRef.current.rotation.x = Math.sin(spinRef.current) * Math.PI / 4; // 45 degree rotation
             } else {
                 spinRef.current = 0;
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, delta * 5);
+                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, delta * 4);
             }
 
             // Fading logic
