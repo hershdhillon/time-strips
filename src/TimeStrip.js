@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useLayoutEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text3D } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,67 +8,78 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const textRef = useRef();
     const boxRef = useRef();
     const { viewport } = useThree();
-    const opacityRef = useRef(1);
     const [hovered, setHovered] = useState(false);
     const spinRef = useRef(0);
 
     const size = [viewport.width, 0.5, 0.1];
-    const initialRotation = THREE.MathUtils.degToRad(-40);
+    const initialRotation = THREE.MathUtils.degToRad(-40); // Initial rotation in radians
 
-    useFrame((state, delta) => {
-        if (groupRef.current) {
-            // Simple downward movement
-            groupRef.current.position.y -= delta * 2;
+    useLayoutEffect(() => {
+        if (textRef.current && textRef.current.geometry && boxRef.current) {
+            // Compute the bounding box of the text geometry
+            textRef.current.geometry.computeBoundingBox();
+            const textBox = textRef.current.geometry.boundingBox;
 
-            // Curve-like rotation logic
-            const t = Math.max(0, Math.min(1, 1 - groupRef.current.position.y / initialPosition[1]));
-            const curveRotation = initialRotation * (1 - t) + THREE.MathUtils.degToRad(0) * t;
-            groupRef.current.rotation.x = curveRotation;
+            if (textBox) {
+                const textWidth = textBox.max.x - textBox.min.x || 1;
+                const textHeight = textBox.max.y - textBox.min.y || 1;
 
-            // Hover spin effect
-            if (hovered) {
-                spinRef.current += delta * 5; // Adjust the 5 to change spin speed
-                groupRef.current.rotation.x = Math.sin(spinRef.current) * Math.PI / 4; // 45 degree rotation
-            } else {
-                spinRef.current = 0;
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, curveRotation, delta * 4);
-            }
+                // Calculate scale to fit text within the viewport width
+                const maxTextWidth = viewport.width - 1; // Leave some padding
+                const scale = Math.min(1, maxTextWidth / textWidth);
+                textRef.current.scale.set(scale, scale, 1);
 
-            // Fading logic
-            const fadeStartY = viewport.height / 4; // Start fading in the lower quarter of the screen
-            const fadeEndY = -viewport.height / 2 + size[1] - 20; // End fading just before going off-screen
-
-            if (groupRef.current.position.y <= fadeStartY) {
-                const fadeProgress = Math.max(0, Math.min(1, (fadeStartY - groupRef.current.position.y) / (fadeStartY - fadeEndY)));
-                opacityRef.current = 1 - fadeProgress;
-
-                // Remove the strip when it's fully faded out or about to go off-screen
-                if (opacityRef.current <= 0.05 || groupRef.current.position.y <= fadeEndY) {
-                    onRemove(id);
-                    return;
-                }
-            }
-
-            // Update text scaling and positioning
-            if (textRef.current && boxRef.current) {
-                const textBox = new THREE.Box3().setFromObject(textRef.current);
-                const textWidth = textBox.max.x - textBox.min.x;
-                const scale = Math.min(1, viewport.width / textWidth);
-
-                if (Math.abs(textRef.current.scale.x - scale) > 0.01) {
-                    textRef.current.scale.set(scale, scale, 1);
-                }
-
-                const scaledTextBox = new THREE.Box3().setFromObject(textRef.current);
+                // Recompute the bounding box after scaling
+                textRef.current.geometry.computeBoundingBox();
+                const scaledTextBox = textRef.current.geometry.boundingBox;
                 const scaledTextWidth = scaledTextBox.max.x - scaledTextBox.min.x;
                 const scaledTextHeight = scaledTextBox.max.y - scaledTextBox.min.y;
 
-                textRef.current.position.set(-scaledTextWidth / 2, -0.5, 0.06);
+                // Center the text within the group
+                const textCenterX = (scaledTextBox.max.x + scaledTextBox.min.x) / 2;
+                const textCenterY = (scaledTextBox.max.y + scaledTextBox.min.y) / 2;
+                textRef.current.position.set(-textCenterX, -textCenterY, 0.06);
 
-                const newWidth = viewport.width + 1;
-                const newHeight = scaledTextHeight + 0.2;
-                boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 5);
-                boxRef.current.position.set(0, 0, 0);
+                // Adjust the box to accommodate the text with some padding
+                const boxWidth = scaledTextWidth + 0.5; // Add horizontal padding
+                const boxHeight = scaledTextHeight + 0.5; // Add vertical padding
+                boxRef.current.scale.set(boxWidth / size[0], boxHeight / size[1], 5);
+                boxRef.current.position.set(0, 0, 0); // Center the box
+            } else {
+                // If bounding box is not ready, rerun the effect
+                setTimeout(() => {
+                    textRef.current.geometry.computeBoundingBox();
+                }, 0);
+            }
+        }
+    }, [viewport.width, time]);
+
+    useFrame((state, delta) => {
+        if (groupRef.current) {
+            // Downward movement
+            groupRef.current.position.y -= delta * 2;
+
+            // Define fadeEndY (you might need to adjust this based on your scene)
+            const fadeEndY = -viewport.height / 2 - 1;
+
+            // Calculate progress 'p' from 0 to 1 over the total distance
+            const totalDistance = initialPosition[1] - fadeEndY;
+            const currentDistance = initialPosition[1] - groupRef.current.position.y;
+            const p = THREE.MathUtils.clamp(currentDistance / totalDistance, 0, 1);
+
+            // Compute rotation using cosine function
+            const rotation = initialRotation * Math.cos(p * Math.PI);
+            groupRef.current.rotation.x = rotation;
+
+            // Hover spin effect (optional)
+            if (hovered) {
+                spinRef.current += delta * 5;
+                groupRef.current.rotation.x = Math.sin(spinRef.current) * (Math.PI / 4);
+            }
+
+            // Fading logic (if you want to fade out at the bottom)
+            if (groupRef.current.position.y <= fadeEndY) {
+                onRemove(id);
             }
         }
     });
@@ -83,21 +94,17 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
         >
             <mesh ref={boxRef}>
                 <boxGeometry args={size} />
-                <meshStandardMaterial color="white" transparent={true} opacity={1} />
+                <meshStandardMaterial color="white" />
             </mesh>
             <Text3D
                 ref={textRef}
-                fontSize={0.2}
-                scale={[1, 1, 1.5]}
+                fontSize={0.15}
                 height={0.1}
                 bevelEnabled
-                color="black"
-                anchorX="center"
-                anchorY="middle"
                 font="/Early GameBoy_Regular.json"
             >
                 {time}
-                <meshStandardMaterial color="black" transparent={true} opacity={1} />
+                <meshStandardMaterial color="black" />
             </Text3D>
         </group>
     );

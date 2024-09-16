@@ -14,7 +14,7 @@ const Scene = () => {
     const addStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 + 2; // Spawn above the viewport
+        const spawnY = viewport.height / 2 + 0.5; // Spawn above the viewport
         const spawnX = 0; // Center of the screen
 
         setStrips((prevStrips) => [
