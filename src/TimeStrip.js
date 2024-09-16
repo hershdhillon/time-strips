@@ -1,20 +1,28 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Text3D } from '@react-three/drei'
 import { useBox } from '@react-three/cannon'
 import * as THREE from 'three'
+
 const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
-    const [size, setSize] = useState([1, 1, 0.1])
+    const textRef = useRef()
+    const boxRef = useRef()
+    const lifetimeRef = useRef(0)
+    const { viewport } = useThree()
+
+    // Initial size: set it to the maximum expected size
+    const size = [viewport.width, 1, 0.1]
+
+    const rotationSpeed = 0 // Adjust this value for rotation speed
+
     const [ref, api] = useBox(() => ({
         mass: 0.1,
         position: initialPosition,
         args: size,
         linearDamping: 0.95,
+        angularDamping: 0.95,
+        angularVelocity: [rotationSpeed ,0, 0],
     }))
-    const textRef = useRef()
-    const boxRef = useRef()
-    const lifetimeRef = useRef(0)
-    const { viewport } = useThree()
 
     useEffect(() => {
         api.applyImpulse([0, -5, 0], [0, 0, 0])
@@ -33,7 +41,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             const textHeight = textBox.max.y - textBox.min.y
 
             // Calculate scale to fit viewport width, with a maximum scale
-            const maxScale = 1  // Set this to whatever maximum scale you want
+            const maxScale = 1 // Set this to whatever maximum scale you want
             const scale = Math.min(maxScale, viewport.width / textWidth)
 
             // Only update scale if it's significantly different
@@ -49,27 +57,19 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             // Center text
             textRef.current.position.x = -scaledTextWidth / 2
             textRef.current.position.y = -0.5
-            textRef.current.position.z = 0.01 // Slightly in front of the box
+            textRef.current.position.z = 0.06 // Slightly in front of the box
 
-            // Adjust box size to cover full width and match text height
+            // Adjust box visual scale to match text dimensions
             const newWidth = viewport.width
             const newHeight = scaledTextHeight + 0.09
-            boxRef.current.scale.set(newWidth, newHeight, 0.1)
+            boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 1)
             boxRef.current.position.x = 0
             boxRef.current.position.y = 0
             boxRef.current.position.z = 0
 
-            // Update physics body size
-            if (Math.abs(size[0] - newWidth) > 0.01 || Math.abs(size[1] - newHeight) > 0.01) {
-                setSize([newWidth, newHeight, 0.1])
-            }
+            // Note: We are scaling the visual mesh but not the physics body
         }
     })
-
-    useEffect(() => {
-        // This effect will run whenever 'size' changes
-        api.mass.set(0.1) // Reset the mass to recalculate physics
-    }, [api, size])
 
     return (
         <group ref={ref}>
@@ -91,4 +91,5 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
         </group>
     )
 }
+
 export default TimeStrip
