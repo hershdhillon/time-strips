@@ -3,6 +3,7 @@ import { useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/cannon';
 import TimeStrip from './TimeStrip';
 import Floor from './Floor';
+import {Environment} from "@react-three/drei";
 
 const Scene = () => {
     const [strips, setStrips] = useState([]);
@@ -15,15 +16,18 @@ const Scene = () => {
     const addStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
+        const spawnY = viewport.height / 2 ; // Spawn above the viewport
+        const spawnX = viewport.width / 10; // Random X position
+
         setStrips((prevStrips) => [
             {
                 id: now.getTime(),
                 time: formattedTime,
-                position: [0, viewport.height / 2 - 1, 0],
+                position: [0, spawnY, 0],
             },
             ...prevStrips,
         ]);
-    }, [viewport.height]);
+    }, [viewport.height, viewport.width]);
 
     useEffect(() => {
         let interval;
@@ -33,14 +37,14 @@ const Scene = () => {
                 clearInterval(interval);
             } else {
                 resetStrips();
-                interval = setInterval(addStrip, 450);
+                interval = setInterval(addStrip, 1000);
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         // Initial setup
-        interval = setInterval(addStrip, 450);
+        interval = setInterval(addStrip, 1000);
 
         return () => {
             clearInterval(interval);
@@ -61,10 +65,9 @@ const Scene = () => {
     };
 
     return (
-        <Physics iterations={10} tolerance={0.0001} defaultContactMaterial={{ restitution: 0.5 }}>
-            <ambientLight intensity={10} />
-            <pointLight position={[10, 10, 10]} castShadow />
+        <Physics iterations={10} tolerance={0.0001} defaultContactMaterial={{ restitution: 0.2, friction: 0.5 }}>
             <Floor />
+            <Environment preset={"warehouse"} environmentIntensity={2}/>
             {strips.map((strip) => (
                 <TimeStrip
                     key={strip.id}

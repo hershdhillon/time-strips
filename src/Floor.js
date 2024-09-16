@@ -13,7 +13,7 @@ const Floor = () => {
     return (
         <mesh ref={ref} receiveShadow>
             <planeGeometry args={[viewport.width, viewport.depth]} />
-            <meshStandardMaterial color="#404040" transparent={true} />
+            <meshStandardMaterial color="#404040" transparent opacity={0.0} />
         </mesh>
     );
 };

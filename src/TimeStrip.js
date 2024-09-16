@@ -31,7 +31,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     useFrame((state, delta) => {
         lifetimeRef.current += delta;
 
-        if (lifetimeRef.current > 30) {
+        if (lifetimeRef.current > 20) {
             onRemove(id);
         }
 
@@ -76,8 +76,8 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
             // Adjust box visual scale to match text dimensions
             const newWidth = viewport.width + 1;
-            const newHeight = scaledTextHeight + 0.5;
-            boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 1);
+            const newHeight = scaledTextHeight + 1;
+            boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 3);
             boxRef.current.position.x = 0;
             boxRef.current.position.y = 0;
             boxRef.current.position.z = 0;
@@ -94,7 +94,10 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             </mesh>
             <Text3D
                 ref={textRef}
-                fontSize={1}
+                fontSize={0.2}
+                scale={[1, 1, 1.3]}
+                height={0.1}
+                bevelEnabled
                 color="black"
                 anchorX="center"
                 anchorY="middle"
