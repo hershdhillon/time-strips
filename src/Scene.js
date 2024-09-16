@@ -39,7 +39,7 @@ const Scene = () => {
         document.addEventListener('visibilitychange', handleVisibilityChange)
 
         // Initial setup
-        interval = setInterval(addStrip, 1000)
+        interval = setInterval(addStrip, 450)
 
         return () => {
             clearInterval(interval)

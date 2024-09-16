@@ -22,7 +22,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
     useFrame((state, delta) => {
         lifetimeRef.current += delta
-        if (lifetimeRef.current > 20) {
+        if (lifetimeRef.current > 10) {
             onRemove(id)
         }
 
