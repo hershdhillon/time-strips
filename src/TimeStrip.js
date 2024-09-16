@@ -10,16 +10,17 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const lifetimeRef = useRef(0);
     const { viewport } = useThree();
 
-    const size = [viewport.width, 1, 0.1];
+    const size = [viewport.width, 0.5, 0.1]; // Reduced height for better stacking
     const initialRotation = THREE.MathUtils.degToRad(-10);
 
     const [ref, api] = useBox(() => ({
-        mass: 0.1,
+        mass: 1, // Increased mass for better stacking
         position: initialPosition,
         args: size,
         linearDamping: 0.95,
         angularDamping: 0.95,
-        angularFactor: [0, 0, 0],
+        friction: 0.5, // Added friction for better stacking
+        restitution: 0.5, // Reduced restitution for less bouncing
         rotation: [initialRotation, 0, 0],
     }));
 
@@ -30,7 +31,6 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     useFrame((state, delta) => {
         lifetimeRef.current += delta;
 
-        // Remove the strip after 30 seconds
         if (lifetimeRef.current > 30) {
             onRemove(id);
         }
@@ -41,8 +41,8 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             const rotationX = initialRotation * (1 - t);
             ref.current.rotation.x = rotationX;
 
-            // Check if the strip has hit the floor
-            if (ref.current.position.y <= -viewport.height / 2 + 0.5) {
+            // Remove velocity when close to the floor to prevent jittering
+            if (ref.current.position.y <= -viewport.height / 2 + 0.3) {
                 api.velocity.set(0, 0, 0);
                 api.angularVelocity.set(0, 0, 0);
                 api.position.set(ref.current.position.x, -viewport.height / 2 + 0.5, ref.current.position.z);
@@ -76,7 +76,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
             // Adjust box visual scale to match text dimensions
             const newWidth = viewport.width + 1;
-            const newHeight = scaledTextHeight + 0.3;
+            const newHeight = scaledTextHeight + 0.5;
             boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 1);
             boxRef.current.position.x = 0;
             boxRef.current.position.y = 0;
@@ -90,7 +90,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
         <group ref={ref}>
             <mesh ref={boxRef}>
                 <boxGeometry args={size} />
-                <meshStandardMaterial color="white" />
+                <meshStandardMaterial color="white"   />
             </mesh>
             <Text3D
                 ref={textRef}
