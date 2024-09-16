@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { PerspectiveCamera, OrbitControls } from '@react-three/drei'
-import { Physics, usePlane } from '@react-three/cannon'
+import { Physics } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
 
 
@@ -17,9 +16,9 @@ const Scene = () => {
                     time: now.toLocaleTimeString(),
                     position: [Math.random() * 8 - 4, 10, Math.random() * 2 - 1],
                 },
-                ...prevStrips.slice(0, 49), // Limit to 50 strips
+                ...prevStrips.slice(0, 49),
             ])
-        }, 1000)  // New strip every second
+        }, 1000)
 
         return () => clearInterval(interval)
     }, [])
@@ -30,7 +29,7 @@ const Scene = () => {
 
     return (
         <Physics>
-            <PerspectiveCamera makeDefault position={[0, 5, 10]} fov={60} />
+            <PerspectiveCamera makeDefault position={[0, 5, 15]} fov={40} />
             <OrbitControls />
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} castShadow />
