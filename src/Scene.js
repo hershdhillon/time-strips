@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Physics } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
@@ -7,22 +7,45 @@ const Scene = () => {
     const [strips, setStrips] = useState([])
     const { viewport } = useThree()
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const now = new Date()
-            const formattedTime = formatTime(now)
-            setStrips((prevStrips) => [
-                {
-                    id: now.getTime(),
-                    time: formattedTime,
-                    position: [0, viewport.height / 2 - 1, 0], // Centered horizontally, top of screen vertically
-                },
-                ...prevStrips.slice(0, 49),
-            ])
-        }, 450)
+    const resetStrips = useCallback(() => {
+        setStrips([])
+    }, [])
 
-        return () => clearInterval(interval)
-    }, [viewport])
+    const addStrip = useCallback(() => {
+        const now = new Date()
+        const formattedTime = formatTime(now)
+        setStrips((prevStrips) => [
+            {
+                id: now.getTime(),
+                time: formattedTime,
+                position: [0, viewport.height / 2 - 1, 0],
+            },
+            ...prevStrips.slice(0, 49),
+        ])
+    }, [viewport.height])
+
+    useEffect(() => {
+        let interval
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                clearInterval(interval)
+            } else {
+                resetStrips()
+                interval = setInterval(addStrip, 450)
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        // Initial setup
+        interval = setInterval(addStrip, 1000)
+
+        return () => {
+            clearInterval(interval)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
+    }, [addStrip, resetStrips])
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']

@@ -11,7 +11,7 @@ const TimeWaterfall = () => {
         >
             <OrbitControls
                 enablePan={false}
-                enableRotate={true}
+                enableRotate={false}
                 enableZoom={false}
             />
             <Scene />
