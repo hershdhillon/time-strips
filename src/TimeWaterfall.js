@@ -1,7 +1,7 @@
 import React from 'react'
 import { Canvas } from '@react-three/fiber'
 import Scene from './Scene'
-import { OrbitControls } from '@react-three/drei'
+import {OrbitControls} from '@react-three/drei'
 
 const TimeWaterfall = () => {
     return (
