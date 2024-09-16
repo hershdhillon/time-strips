@@ -24,21 +24,14 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
             // Fading logic
             const fadeStartY = viewport.height / 4; // Start fading in the lower quarter of the screen
-            const fadeEndY = -viewport.height / 2 + size[1] / 2; // End fading just before going off-screen
+            const fadeEndY = -viewport.height / 2 + size[1] - 20; // End fading just before going off-screen
 
             if (groupRef.current.position.y <= fadeStartY) {
                 const fadeProgress = Math.max(0, Math.min(1, (fadeStartY - groupRef.current.position.y) / (fadeStartY - fadeEndY)));
                 opacityRef.current = 1 - fadeProgress;
 
-                if (boxRef.current && boxRef.current.material) {
-                    boxRef.current.material.opacity = opacityRef.current;
-                }
-                if (textRef.current && textRef.current.material) {
-                    textRef.current.material.opacity = opacityRef.current;
-                }
-
                 // Remove the strip when it's fully faded out or about to go off-screen
-                if (opacityRef.current <= 0.01 || groupRef.current.position.y <= fadeEndY) {
+                if (opacityRef.current <= 0.05 || groupRef.current.position.y <= fadeEndY) {
                     onRemove(id);
                     return;
                 }
@@ -61,7 +54,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 textRef.current.position.set(-scaledTextWidth / 2, -0.5, 0.06);
 
                 const newWidth = viewport.width + 1;
-                const newHeight = scaledTextHeight + 0.8;
+                const newHeight = scaledTextHeight + 0.2;
                 boxRef.current.scale.set(newWidth / size[0], newHeight / size[1], 5);
                 boxRef.current.position.set(0, 0, 0);
             }
