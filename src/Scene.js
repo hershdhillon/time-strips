@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { OrbitControls } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 import { Physics } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
 
 const Scene = () => {
     const [strips, setStrips] = useState([])
+    const { viewport } = useThree()
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -14,14 +15,14 @@ const Scene = () => {
                 {
                     id: now.getTime(),
                     time: formattedTime,
-                    position: [0, 15, 0], // Fixed spawn position
+                    position: [0, viewport.height / 2 - 1, 0], // Centered horizontally, top of screen vertically
                 },
                 ...prevStrips.slice(0, 49),
             ])
-        }, 1000)
+        }, 450)
 
         return () => clearInterval(interval)
-    }, [])
+    }, [viewport])
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -37,8 +38,7 @@ const Scene = () => {
 
     return (
         <Physics iterations={10} tolerance={0.0001} defaultContactMaterial={{ restitution: 0.5 }}>
-            <OrbitControls />
-            <ambientLight intensity={0.5} />
+            <ambientLight intensity={10} />
             <pointLight position={[10, 10, 10]} castShadow />
             {strips.map((strip) => (
                 <TimeStrip
