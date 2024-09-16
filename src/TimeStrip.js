@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text3D } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,6 +9,8 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const boxRef = useRef();
     const { viewport } = useThree();
     const opacityRef = useRef(1);
+    const [hovered, setHovered] = useState(false);
+    const spinRef = useRef(0);
 
     const size = [viewport.width, 0.5, 0.1];
     const initialRotation = THREE.MathUtils.degToRad(-20);
@@ -21,6 +23,15 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             // Rotation logic
             const t = Math.max(0, Math.min(1, 1 - groupRef.current.position.y / initialPosition[1]));
             groupRef.current.rotation.x = initialRotation * (1 - t);
+
+            // Hover spin effect
+            if (hovered) {
+                spinRef.current += delta * 5; // Adjust the 5 to change spin speed
+                groupRef.current.rotation.x = Math.sin(spinRef.current) * Math.PI / 4; // 45 degree rotation
+            } else {
+                spinRef.current = 0;
+                groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, delta * 5);
+            }
 
             // Fading logic
             const fadeStartY = viewport.height / 4; // Start fading in the lower quarter of the screen
@@ -62,7 +73,13 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     });
 
     return (
-        <group ref={groupRef} position={initialPosition} rotation={[initialRotation, 0, 0]}>
+        <group
+            ref={groupRef}
+            position={initialPosition}
+            rotation={[initialRotation, 0, 0]}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+        >
             <mesh ref={boxRef}>
                 <boxGeometry args={size} />
                 <meshStandardMaterial color="white" transparent={true} opacity={1} />
