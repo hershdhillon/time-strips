@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import Scene from './Scene'
 import {OrbitControls} from '@react-three/drei'
 
-const TimeWaterfall = () => {
+const TimeFall = () => {
     return (
         <Canvas camera={{ position: [0, 0, 25], fov: 75 }}>
             <OrbitControls enablePan={false} enableRotate={false} enableZoom={false} />
@@ -12,4 +12,4 @@ const TimeWaterfall = () => {
     )
 }
 
-export default TimeWaterfall
+export default TimeFall
