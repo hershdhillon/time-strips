@@ -4,15 +4,6 @@ import { PerspectiveCamera, OrbitControls } from '@react-three/drei'
 import { Physics, usePlane } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
 
-const Floor = () => {
-    const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], position: [0, -5, 0] }))
-    return (
-        <mesh ref={ref} receiveShadow>
-            <planeGeometry args={[20, 20]} />
-            <shadowMaterial color="#171717" opacity={0.4} />
-        </mesh>
-    )
-}
 
 const Scene = () => {
     const [strips, setStrips] = useState([])
@@ -43,7 +34,6 @@ const Scene = () => {
             <OrbitControls />
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} castShadow />
-            <Floor />
             {strips.map((strip) => (
                 <TimeStrip
                     key={strip.id}
