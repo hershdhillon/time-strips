@@ -10,10 +10,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const lifetimeRef = useRef(0);
     const { viewport } = useThree();
 
-    // Initial size: set it to the maximum expected size
     const size = [viewport.width, 1, 0.1];
-
-    // Initial rotation of -30 degrees in radians
     const initialRotation = THREE.MathUtils.degToRad(-10);
 
     const [ref, api] = useBox(() => ({
@@ -22,7 +19,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
         args: size,
         linearDamping: 0.95,
         angularDamping: 0.95,
-        angularFactor: [0, 0, 0], // Prevent rotation
+        angularFactor: [0, 0, 0],
         rotation: [initialRotation, 0, 0],
     }));
 
@@ -32,16 +29,24 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
 
     useFrame((state, delta) => {
         lifetimeRef.current += delta;
-        if (lifetimeRef.current > 10) {
+
+        // Remove the strip after 30 seconds
+        if (lifetimeRef.current > 30) {
             onRemove(id);
         }
 
-        // Animate rotation back to zero over the specified duration
         if (ref.current) {
-            const rotationDuration = 0.001; // Adjust this value to change how quickly rotation returns to zero
+            const rotationDuration = 0.001;
             const t = Math.min(lifetimeRef.current / rotationDuration, 1);
             const rotationX = initialRotation * (1 - t);
             ref.current.rotation.x = rotationX;
+
+            // Check if the strip has hit the floor
+            if (ref.current.position.y <= -viewport.height / 2 + 0.5) {
+                api.velocity.set(0, 0, 0);
+                api.angularVelocity.set(0, 0, 0);
+                api.position.set(ref.current.position.x, -viewport.height / 2 + 0.5, ref.current.position.z);
+            }
         }
 
         if (textRef.current && boxRef.current) {
@@ -98,7 +103,6 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 {time}
                 <meshStandardMaterial color="black" />
             </Text3D>
-
         </group>
     );
 };
