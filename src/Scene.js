@@ -37,7 +37,7 @@ const Scene = () => {
 
     return (
         <Physics>
-            <PerspectiveCamera makeDefault position={[0, 5, 15]} fov={40} />
+            <PerspectiveCamera makeDefault position={[0, 5, 30]} fov={30} />
             <OrbitControls />
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} castShadow />
