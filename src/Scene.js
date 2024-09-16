@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { PerspectiveCamera, OrbitControls } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { Physics } from '@react-three/cannon'
 import TimeStrip from './TimeStrip'
 
@@ -14,7 +14,7 @@ const Scene = () => {
                 {
                     id: now.getTime(),
                     time: formattedTime,
-                    position: [Math.random() * 8 - 4, 15, Math.random() * 2 - 1], // Changed Y position from 10 to 15
+                    position: [0, 15, 0], // Fixed spawn position
                 },
                 ...prevStrips.slice(0, 49),
             ])

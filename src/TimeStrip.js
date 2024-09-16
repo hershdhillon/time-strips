@@ -7,7 +7,11 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const [opacity, setOpacity] = useState(1)
     const [ref, api] = useBox(() => ({
         mass: 0.1,
-        position: initialPosition,
+        position: [
+            initialPosition[0] + (Math.random() - 0.5) * 0.1,
+            initialPosition[1],
+            initialPosition[2] + (Math.random() - 0.5) * 0.1
+        ],
         args: [8, 1, 0.1],
         linearDamping: 0.95,
     }))
