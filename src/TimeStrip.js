@@ -6,9 +6,10 @@ import { useBox } from '@react-three/cannon'
 const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
     const [opacity, setOpacity] = useState(1)
     const [ref, api] = useBox(() => ({
-        mass: 1,
+        mass: 0.1, // Reduced mass for slower fall
         position: initialPosition,
-        args: [4, 0.5, 0.2]
+        args: [4, 0.5, 0.2],
+        linearDamping: 0.95, // Add damping to slow down the fall
     }))
 
     useFrame((state, delta) => {
