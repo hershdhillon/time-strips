@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
-import { Physics } from '@react-three/cannon';
 import TimeStrip from './TimeStrip';
 import { Environment } from "@react-three/drei";
 
@@ -59,18 +58,13 @@ const Scene = () => {
         return `${day} ${dateStr} ${timeStr}`.toUpperCase();
     };
 
-    const removeStrip = (id) => {
+    const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
-    };
+    }, []);
 
     return (
-        <Physics
-            iterations={20}
-            tolerance={0.0001}
-            gravity={[0, -9.81, 0]}
-            defaultContactMaterial={{ friction: 0.5, restitution: 0.2 }}
-        >
-            <Environment preset={"warehouse"} environmentIntensity={2}/>
+        <>
+            <Environment preset="warehouse" environmentIntensity={2}/>
             {strips.map((strip) => (
                 <TimeStrip
                     key={strip.id}
@@ -80,7 +74,7 @@ const Scene = () => {
                     onRemove={removeStrip}
                 />
             ))}
-        </Physics>
+        </>
     );
 };
 
