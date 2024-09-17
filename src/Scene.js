@@ -3,6 +3,7 @@ import { useThree } from '@react-three/fiber';
 import TimeStrip from './TimeStrip';
 import { Environment } from "@react-three/drei";
 import SandFall from "./SandFall";
+import RisingSand from "./RisingSand";
 
 const Scene = () => {
     const [strips, setStrips] = useState([]);
@@ -56,7 +57,7 @@ const Scene = () => {
         const day = days[date.getDay()];
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        return `${day} ${dateStr} ${timeStr}`.toUpperCase();
+        return `${day} ${dateStr} at ${timeStr}`.toUpperCase();
     };
 
     const removeStrip = useCallback((id) => {
@@ -66,13 +67,21 @@ const Scene = () => {
     return (
         <>
 
-            <ambientLight  intensity={2}/>
-            <Environment preset="warehouse" environmentIntensity={2}/>
-            <SandFall
-                position={[0, 0, -5]} // Centered position, pushed back on Z-axis
-                width={viewport.width * 3} // Extend beyond viewport for coverage
-                height={viewport.height * 3} // Extend beyond viewport for coverage
-                count={10000} // Number of particles
+            <pointLight  intensity={100}  position={[-10,100,100]}/>
+            <directionalLight intensity={10}/>
+            <spotLight intensity={100} position={[0,0,10]} />
+            <Environment preset={"studio"}  environmentIntensity={0.2} />
+            {/*<SandFall*/}
+            {/*    position={[0, 0, -5]} // Centered position, pushed back on Z-axis*/}
+            {/*    width={viewport.width * 3} // Extend beyond viewport for coverage*/}
+            {/*    height={viewport.height * 3} // Extend beyond viewport for coverage*/}
+            {/*    count={20000} // Number of particles*/}
+            {/*/>*/}
+            <RisingSand
+                position={[0, 0, -5]}
+                width={viewport.width * 3}
+                height={viewport.height * 3}
+                count={20000}
             />
 
             {strips.map((strip) => (
