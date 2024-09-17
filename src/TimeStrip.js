@@ -43,7 +43,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 // Adjust the box to accommodate the text with some padding
                 const boxWidth = scaledTextWidth + 0.5; // Add horizontal padding
                 const boxHeight = scaledTextHeight + 0.5; // Add vertical padding
-                boxRef.current.scale.set(boxWidth / size[0], boxHeight / size[1], 5);
+                boxRef.current.scale.set(boxWidth / size[0] + 0.01, boxHeight / size[1], 5);
                 boxRef.current.position.set(0, 0, 0); // Center the box
             } else {
                 // If bounding box is not ready, rerun the effect
@@ -99,7 +99,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
             <Text3D
                 ref={textRef}
                 fontSize={0.15}
-                height={0.1}
+                height={0.2}
                 bevelEnabled
                 font="/Early GameBoy_Regular.json"
             >

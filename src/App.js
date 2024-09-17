@@ -1,5 +1,6 @@
 import React from 'react'
 import TimeFall from './TimeFall'
+import DigitalRain from './DigitalRain';
 
 function App() {
     return (

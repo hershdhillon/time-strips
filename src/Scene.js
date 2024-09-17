@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
 import TimeStrip from './TimeStrip';
 import { Environment } from "@react-three/drei";
+import SandFall from "./SandFall";
 
 const Scene = () => {
     const [strips, setStrips] = useState([]);
@@ -64,7 +65,16 @@ const Scene = () => {
 
     return (
         <>
+
+            <ambientLight  intensity={2}/>
             <Environment preset="warehouse" environmentIntensity={2}/>
+            <SandFall
+                position={[0, 0, -5]} // Centered position, pushed back on Z-axis
+                width={viewport.width * 3} // Extend beyond viewport for coverage
+                height={viewport.height * 3} // Extend beyond viewport for coverage
+                count={10000} // Number of particles
+            />
+
             {strips.map((strip) => (
                 <TimeStrip
                     key={strip.id}
