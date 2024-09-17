@@ -1,10 +1,11 @@
 import React from 'react'
-import TimeWaterfall from './TimeWaterfall'
+import TimeFall from './TimeFall'
+import DigitalRain from './DigitalRain';
 
 function App() {
     return (
         <div style={{ width: '100vw', height: '100vh' }}>
-            <TimeWaterfall />
+            <TimeFall />
         </div>
     )
 }
