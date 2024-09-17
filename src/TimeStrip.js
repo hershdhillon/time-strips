@@ -94,7 +94,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
         >
             <mesh ref={boxRef}>
                 <boxGeometry args={size} />
-                <meshStandardMaterial color="white" />
+                <meshStandardMaterial color="white" transparent opacity={0}/>
             </mesh>
             <Text3D
                 ref={textRef}
@@ -104,7 +104,7 @@ const TimeStrip = ({ id, time, initialPosition, onRemove }) => {
                 font="/Early GameBoy_Regular.json"
             >
                 {time}
-                <meshStandardMaterial color="black" />
+                <meshStandardMaterial color="grey" />
             </Text3D>
         </group>
     );

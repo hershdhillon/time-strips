@@ -6,11 +6,12 @@ import * as THREE from 'three';
 const SandFall = ({ position, width, height, count, centerRadius = 1 }) => {
     const meshRef = useRef();
 
-    // Generate random positions, colors, and sizes for the particles
-    const [positions, colors, sizes] = useMemo(() => {
+    // Generate random positions, colors, sizes, and velocities for the particles
+    const [positions, colors, sizes, velocities] = useMemo(() => {
         const positionsArray = [];
         const colorsArray = [];
         const sizesArray = [];
+        const velocitiesArray = [];
         for (let i = 0; i < count; i++) {
             let x, y, z, distanceFromCenter;
 
@@ -34,11 +35,18 @@ const SandFall = ({ position, width, height, count, centerRadius = 1 }) => {
 
             // Particle sizes for visibility
             sizesArray.push(0.07 + Math.random() * 0.05); // Sizes between 0.07 and 0.12
+
+            // Precompute velocities
+            const velocityX = (Math.random() - 0.5) * 0.015;
+            const velocityY = -0.1; // Increased falling speed
+            const velocityZ = (Math.random() - 0.5) * 0.015;
+            velocitiesArray.push(velocityX, velocityY, velocityZ);
         }
         return [
             new Float32Array(positionsArray),
             new Float32Array(colorsArray),
             new Float32Array(sizesArray),
+            new Float32Array(velocitiesArray),
         ];
     }, [count, width, height, centerRadius]);
 
@@ -48,25 +56,30 @@ const SandFall = ({ position, width, height, count, centerRadius = 1 }) => {
         geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        geo.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
         return geo;
-    }, [positions, colors, sizes]);
+    }, [positions, colors, sizes, velocities]);
 
     useFrame(() => {
         if (meshRef.current) {
             const positions = meshRef.current.geometry.attributes.position.array;
+            const velocities = meshRef.current.geometry.attributes.velocity.array;
             for (let i = 0; i < positions.length; i += 3) {
-                // Update Y position to simulate falling
-                positions[i + 1] -= 0.05; // Adjust falling speed as needed
-
-                // Slight random movement for natural effect
-                positions[i] += (Math.random() - 0.5) * 0.015; // X-axis
-                positions[i + 2] += (Math.random() - 0.5) * 0.015; // Z-axis
+                // Update positions using precomputed velocities
+                positions[i] += velocities[i];       // X-axis
+                positions[i + 1] += velocities[i + 1]; // Y-axis (falling faster)
+                positions[i + 2] += velocities[i + 2]; // Z-axis
 
                 // Reset particle to the top if it goes below the bottom
                 if (positions[i + 1] < -height / 2) {
                     positions[i + 1] = height / 2;
+
+                    // Optionally reset X and Z positions for randomness
+                    positions[i] = (Math.random() - 0.5) * width;
+                    positions[i + 2] = (Math.random() - 0.5) * width;
                 }
             }
+            // Only need to update the position attribute
             meshRef.current.geometry.attributes.position.needsUpdate = true;
         }
     });
