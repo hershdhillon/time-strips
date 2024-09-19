@@ -5,10 +5,22 @@ import TimeStrip from './TimeStrip';
 import SandFall from "./SandFall";
 
 const Scene = () => {
-    const [strips, setStrips] = useState([]);
     const { viewport } = useThree();
     const sandFallRef = useRef();
-    const intervalRef = useRef();
+
+    // Calculate the fall duration and strip count based on aspect ratio
+    const [fallDuration, stripCount] = useMemo(() => {
+        const aspectRatio = viewport.width / viewport.height;
+        const baseDuration = 7; // seconds
+        const baseStripCount = 7; // number of strips for base duration
+
+        if (aspectRatio < 1) { // Portrait mode (e.g., phones)
+            const factor = 1 / aspectRatio;
+            const adjustedDuration = baseDuration * factor;
+            return [adjustedDuration, Math.ceil(baseStripCount * factor)];
+        }
+        return [baseDuration, baseStripCount];
+    }, [viewport.width, viewport.height]);
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -18,68 +30,39 @@ const Scene = () => {
         return `${day} ${dateStr} at ${timeStr}`.toUpperCase();
     };
 
-    const createStrip = useCallback(() => {
-        const now = new Date();
-        const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 + 0.5;
+    const createStrip = useCallback((date, yOffset = 0) => {
+        const formattedTime = formatTime(date);
+        const spawnY = viewport.height / 2 + 0.5 - yOffset;
         const spawnX = 0;
 
         return {
-            id: now.getTime(),
+            id: date.getTime(),
             time: formattedTime,
             position: [spawnX, spawnY, 0],
         };
     }, [viewport.height]);
 
+    // Initialize strips with prerolled content
+    const [strips, setStrips] = useState(() => {
+        const now = new Date();
+        return Array.from({ length: stripCount }, (_, index) =>
+            createStrip(new Date(now.getTime() - index * 1000), index)
+        ).reverse();
+    });
+
     const addStrip = useCallback(() => {
-        setStrips((prevStrips) => [createStrip(), ...prevStrips]);
-    }, [createStrip]);
+        const now = new Date();
+        setStrips((prevStrips) => [createStrip(now), ...prevStrips.slice(0)]);
+    }, [createStrip, stripCount]);
 
-    const resetScene = useCallback(() => {
-        setStrips([createStrip()]);
-        if (sandFallRef.current) {
-            sandFallRef.current.reset();
-        }
-    }, [createStrip]);
-
-    const startInterval = useCallback(() => {
-        clearInterval(intervalRef.current);
-        intervalRef.current = setInterval(addStrip, 1000);
-    }, [addStrip]);
-
-    const stopInterval = useCallback(() => {
-        clearInterval(intervalRef.current);
-    }, []);
-
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                stopInterval();
-            } else {
-                resetScene();
-                startInterval();
-            }
-        };
-
-        const handleBlur = () => {
-            resetScene();
-            startInterval();
-        };
-
-        // Initial setup
-        resetScene();
-        startInterval();
-
-        // Add event listeners
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('blur', handleBlur);
-
-        return () => {
-            stopInterval();
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.addEventListener('blur', handleBlur);
-        };
-    }, [resetScene, startInterval, stopInterval]);
+    const resetStrips = useCallback(() => {
+        const now = new Date();
+        setStrips(
+            Array.from({ length: stripCount }, (_, index) =>
+                createStrip(new Date(now.getTime() - index * 1000), index)
+            ).reverse()
+        );
+    }, [createStrip, stripCount]);
 
     const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
@@ -89,11 +72,32 @@ const Scene = () => {
         <SandFall
             ref={sandFallRef}
             position={[0, 0, -5]}
-            width={viewport.width * 3}
-            height={viewport.height * 3}
-            count={50000}
+            count={20000}
         />
-    ), [viewport.width, viewport.height]);
+    ), []);
+
+    useEffect(() => {
+        let interval = setInterval(addStrip, 1000);
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                clearInterval(interval);
+            } else {
+                resetStrips();
+                if (sandFallRef.current && sandFallRef.current.reset) {
+                    sandFallRef.current.reset();
+                }
+                interval = setInterval(addStrip, 1000);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [addStrip, resetStrips]);
 
     return (
         <>
@@ -112,6 +116,7 @@ const Scene = () => {
                         time={strip.time}
                         initialPosition={strip.position}
                         onRemove={removeStrip}
+                        fallDuration={fallDuration}
                     />
                 ))}
             </group>
