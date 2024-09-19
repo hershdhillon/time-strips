@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Environment } from "@react-three/drei";
 import TimeStrip from './TimeStrip';
@@ -7,6 +7,7 @@ import SandFall from "./SandFall";
 const Scene = () => {
     const [strips, setStrips] = useState([]);
     const { viewport } = useThree();
+    const sandFallRef = useRef();
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -33,15 +34,37 @@ const Scene = () => {
         setStrips((prevStrips) => [createStrip(), ...prevStrips]);
     }, [createStrip]);
 
+    const resetScene = useCallback(() => {
+        setStrips([createStrip()]); // Reset to a single strip
+        if (sandFallRef.current) {
+            sandFallRef.current.reset(); // Reset the SandFall component
+        }
+    }, [createStrip]);
+
     useEffect(() => {
-        // Create initial strip immediately
-        setStrips([createStrip()]);
+        let interval;
 
-        // Set up interval for adding new strips
-        const interval = setInterval(addStrip, 1000);
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                clearInterval(interval);
+            } else {
+                resetScene();
+                interval = setInterval(addStrip, 1000);
+            }
+        };
 
-        return () => clearInterval(interval);
-    }, [createStrip, addStrip]);
+        // Initial setup
+        resetScene();
+        interval = setInterval(addStrip, 1000);
+
+        // Add visibility change listener
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [addStrip, resetScene]);
 
     const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
@@ -49,6 +72,7 @@ const Scene = () => {
 
     const memoizedSandFall = useMemo(() => (
         <SandFall
+            ref={sandFallRef}
             position={[0, 0, -5]}
             width={viewport.width * 3}
             height={viewport.height * 3}
