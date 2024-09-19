@@ -8,10 +8,6 @@ const Scene = () => {
     const [strips, setStrips] = useState([]);
     const { viewport } = useThree();
 
-    const resetStrips = useCallback(() => {
-        setStrips([]);
-    }, []);
-
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const day = days[date.getDay()];
@@ -20,41 +16,32 @@ const Scene = () => {
         return `${day} ${dateStr} at ${timeStr}`.toUpperCase();
     };
 
-    const addStrip = useCallback(() => {
+    const createStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
         const spawnY = viewport.height / 2 + 0.5; // Spawn above the viewport
         const spawnX = 0; // Center of the screen
 
-        setStrips((prevStrips) => [
-            {
-                id: now.getTime(),
-                time: formattedTime,
-                position: [spawnX, spawnY, 0],
-            },
-            ...prevStrips,
-        ]);
+        return {
+            id: now.getTime(),
+            time: formattedTime,
+            position: [spawnX, spawnY, 0],
+        };
     }, [viewport.height]);
 
+    const addStrip = useCallback(() => {
+        setStrips((prevStrips) => [createStrip(), ...prevStrips]);
+    }, [createStrip]);
+
     useEffect(() => {
-        let interval = setInterval(addStrip, 1000);
+        // Create initial strip immediately
+        setStrips([createStrip()]);
 
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                clearInterval(interval);
-            } else {
-                resetStrips();
-                interval = setInterval(addStrip, 1000);
-            }
-        };
+        // Set up interval for adding new strips
+        const interval = setInterval(addStrip, 1000);
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, [addStrip, resetStrips]);
+        return () => clearInterval(interval);
+    }, [createStrip, addStrip]);
 
     const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
