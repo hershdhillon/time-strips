@@ -7,6 +7,20 @@ import SandFall from "./SandFall";
 const Scene = () => {
     const { viewport } = useThree();
 
+    // Calculate the fall duration and strip count based on aspect ratio
+    const [fallDuration, stripCount] = useMemo(() => {
+        const aspectRatio = viewport.width / viewport.height;
+        const baseDuration = 7; // seconds
+        const baseStripCount = 7; // number of strips for base duration
+
+        if (aspectRatio < 1) { // Portrait mode (e.g., phones)
+            const factor = 1 / aspectRatio;
+            const adjustedDuration = baseDuration * factor;
+            return [adjustedDuration, Math.ceil(baseStripCount * factor)];
+        }
+        return [baseDuration, baseStripCount];
+    }, [viewport.width, viewport.height]);
+
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const day = days[date.getDay()];
@@ -30,26 +44,24 @@ const Scene = () => {
     // Initialize strips with prerolled content
     const [strips, setStrips] = useState(() => {
         const now = new Date();
-        return [
-            createStrip(new Date(now.getTime() - 2000), 2), // 2 seconds ago
-            createStrip(new Date(now.getTime() - 1000), 1), // 1 second ago
-            createStrip(now, 0) // Current time
-        ];
+        return Array.from({ length: stripCount }, (_, index) =>
+            createStrip(new Date(now.getTime() - index * 1000), index)
+        ).reverse();
     });
 
     const addStrip = useCallback(() => {
         const now = new Date();
-        setStrips((prevStrips) => [createStrip(now), ...prevStrips]);
-    }, [createStrip]);
+        setStrips((prevStrips) => [createStrip(now), ...prevStrips.slice(0, stripCount - 1)]);
+    }, [createStrip, stripCount]);
 
     const resetStrips = useCallback(() => {
         const now = new Date();
-        setStrips([
-            createStrip(new Date(now.getTime() - 2000), 2),
-            createStrip(new Date(now.getTime() - 1000), 1),
-            createStrip(now, 0)
-        ]);
-    }, [createStrip]);
+        setStrips(
+            Array.from({ length: stripCount }, (_, index) =>
+                createStrip(new Date(now.getTime() - index * 1000), index)
+            ).reverse()
+        );
+    }, [createStrip, stripCount]);
 
     useEffect(() => {
         let interval = setInterval(addStrip, 1000);
@@ -101,6 +113,7 @@ const Scene = () => {
                         time={strip.time}
                         initialPosition={strip.position}
                         onRemove={removeStrip}
+                        fallDuration={fallDuration}
                     />
                 ))}
             </group>
