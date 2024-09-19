@@ -1,13 +1,16 @@
-import React from 'react'
-import TimeFall from './TimeFall'
-import DigitalRain from './DigitalRain';
+import React, { Suspense, lazy } from 'react';
+import ProgressBar from './ProgressBar';
+
+const TimeFall = lazy(() => import('./TimeFall'));
 
 function App() {
     return (
         <div style={{ width: '100vw', height: '100vh' }}>
-            <TimeFall />
+            <Suspense fallback={<ProgressBar duration={5000} />}>
+                <TimeFall />
+            </Suspense>
         </div>
-    )
+    );
 }
 
-export default App
+export default App;
