@@ -1,21 +1,31 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const SandFall = ({ position, count, centerRadius = 1 }) => {
+const SandFall = React.forwardRef(({ position, count = 20000, centerRadius = 1 }, ref) => {
     const meshRef = useRef();
     const { viewport } = useThree();
 
-    // Calculate a scale factor based on viewport size
-    const scaleFactor = useMemo(() => {
-        const baseHeight = 10; // Assume a base height of 10 units
+    // Calculate scale factors based on viewport size
+    const [scaleFactor, velocityFactor] = useMemo(() => {
+        const baseHeight = 10;
+        const aspectRatio = viewport.width / viewport.height;
         const rawFactor = baseHeight / viewport.height;
-        // Adjust the scale factor to be less extreme
-        return Math.sqrt(rawFactor) * 0.7; // Square root for less dramatic scaling, then reduce by 30%
-    }, [viewport.height]);
 
-    // Generate random positions, colors, sizes, and velocities for the particles
-    const [positions, colors, sizes, velocities] = useMemo(() => {
+        let scale = Math.sqrt(rawFactor) * 0.9;
+        let velocity = 1;
+
+        // Adjust for portrait mode (long screens)
+        if (aspectRatio < 1) {
+            const portraitFactor = Math.pow(aspectRatio, 0.3);
+            scale *= portraitFactor;
+            velocity *= portraitFactor;
+        }
+
+        return [scale, velocity];
+    }, [viewport.width, viewport.height]);
+
+    const generateParticles = useCallback(() => {
         const positionsArray = new Float32Array(count * 3);
         const colorsArray = new Float32Array(count * 3);
         const sizesArray = new Float32Array(count);
@@ -28,7 +38,6 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
             const i3 = i * 3;
             let x, y, z, distanceFromCenter;
 
-            // Generate positions outside the central radius
             do {
                 x = (Math.random() - 0.5) * width;
                 z = (Math.random() - 0.5) * width;
@@ -40,7 +49,6 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
             positionsArray[i3 + 1] = y;
             positionsArray[i3 + 2] = z;
 
-            // Randomize color slightly to create shades of white
             const color = new THREE.Color();
             const hue = Math.random();
             const saturation = Math.random() * 0.05;
@@ -50,18 +58,17 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
             colorsArray[i3 + 1] = color.g;
             colorsArray[i3 + 2] = color.b;
 
-            // Particle sizes for visibility
-            sizesArray[i] = (0.07 + Math.random() * 0.05) * scaleFactor;
+            sizesArray[i] = (0.1 + Math.random() * 0.1) * scaleFactor;
 
-            // Precompute velocities, scaled by the scaleFactor
-            velocitiesArray[i3] = (Math.random() - 0.5) * 0.03 * scaleFactor;
-            velocitiesArray[i3 + 1] = (-0.5 - Math.random() * 0.2) * scaleFactor; // Increased and varied falling speed
-            velocitiesArray[i3 + 2] = (Math.random() - 0.5) * 0.03 * scaleFactor;
+            velocitiesArray[i3] = (Math.random() - 0.5) * 0.02 * velocityFactor;
+            velocitiesArray[i3 + 1] = (-0.3 - Math.random() * 0.1) * velocityFactor;
+            velocitiesArray[i3 + 2] = (Math.random() - 0.5) * 0.02 * velocityFactor;
         }
         return [positionsArray, colorsArray, sizesArray, velocitiesArray];
-    }, [count, viewport.width, viewport.height, centerRadius, scaleFactor]);
+    }, [count, viewport.width, viewport.height, centerRadius, scaleFactor, velocityFactor]);
 
-    // Create the geometry and set attributes
+    const [positions, colors, sizes, velocities] = useMemo(generateParticles, [generateParticles]);
+
     const geometry = useMemo(() => {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -71,6 +78,22 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
         return geo;
     }, [positions, colors, sizes, velocities]);
 
+    const reset = useCallback(() => {
+        const [newPositions, newColors, newSizes, newVelocities] = generateParticles();
+        meshRef.current.geometry.attributes.position.array.set(newPositions);
+        meshRef.current.geometry.attributes.color.array.set(newColors);
+        meshRef.current.geometry.attributes.size.array.set(newSizes);
+        meshRef.current.geometry.attributes.velocity.array.set(newVelocities);
+        meshRef.current.geometry.attributes.position.needsUpdate = true;
+        meshRef.current.geometry.attributes.color.needsUpdate = true;
+        meshRef.current.geometry.attributes.size.needsUpdate = true;
+        meshRef.current.geometry.attributes.velocity.needsUpdate = true;
+    }, [generateParticles]);
+
+    React.useImperativeHandle(ref, () => ({
+        reset
+    }));
+
     useFrame((state, delta) => {
         if (meshRef.current) {
             const positions = meshRef.current.geometry.attributes.position.array;
@@ -79,37 +102,29 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
             const height = viewport.height * 3;
 
             for (let i = 0; i < positions.length; i += 3) {
-                // Update positions using precomputed velocities
-                positions[i] += velocities[i] * delta * 60; // X-axis
-                positions[i + 1] += velocities[i + 1] * delta * 60; // Y-axis (falling)
-                positions[i + 2] += velocities[i + 2] * delta * 60; // Z-axis
+                positions[i] += velocities[i] * delta * 60;
+                positions[i + 1] += velocities[i + 1] * delta * 60;
+                positions[i + 2] += velocities[i + 2] * delta * 60;
 
-                // Reset particle to the top if it goes below the bottom
                 if (positions[i + 1] < -height / 2) {
                     positions[i + 1] = height / 2;
-
-                    // Reset X and Z positions for randomness
                     positions[i] = (Math.random() - 0.5) * width;
                     positions[i + 2] = (Math.random() - 0.5) * width;
-
-                    // Reset velocities for varied motion
-                    velocities[i] = (Math.random() - 0.5) * 0.03 * scaleFactor;
-                    velocities[i + 1] = (-0.5 - Math.random() * 0.2) * scaleFactor;
-                    velocities[i + 2] = (Math.random() - 0.5) * 0.03 * scaleFactor;
+                    velocities[i] = (Math.random() - 0.5) * 0.02 * velocityFactor;
+                    velocities[i + 1] = (-0.3 - Math.random() * 0.1) * velocityFactor;
+                    velocities[i + 2] = (Math.random() - 0.5) * 0.02 * velocityFactor;
                 }
             }
-            // Only need to update the position attribute
             meshRef.current.geometry.attributes.position.needsUpdate = true;
         }
     });
 
-    // Shader material to handle sizes and colors
     const material = useMemo(
         () =>
             new THREE.ShaderMaterial({
                 vertexColors: true,
                 uniforms: {
-                    maxSize: { value: 2.5 * scaleFactor }, // Slightly increased max size
+                    maxSize: { value: 3.5 * scaleFactor },
                 },
                 vertexShader: `
           uniform float maxSize;
@@ -140,6 +155,6 @@ const SandFall = ({ position, count, centerRadius = 1 }) => {
     return (
         <points ref={meshRef} position={position} geometry={geometry} material={material} />
     );
-};
+});
 
 export default SandFall;

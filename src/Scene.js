@@ -5,21 +5,12 @@ import TimeStrip from './TimeStrip';
 import SandFall from "./SandFall";
 
 const Scene = () => {
+    const [strips, setStrips] = useState([]);
     const { viewport } = useThree();
 
-    // Calculate the fall duration and strip count based on aspect ratio
-    const [fallDuration, stripCount] = useMemo(() => {
-        const aspectRatio = viewport.width / viewport.height;
-        const baseDuration = 7; // seconds
-        const baseStripCount = 7; // number of strips for base duration
-
-        if (aspectRatio < 1) { // Portrait mode (e.g., phones)
-            const factor = 1 / aspectRatio;
-            const adjustedDuration = baseDuration * factor;
-            return [adjustedDuration, Math.ceil(baseStripCount * factor)];
-        }
-        return [baseDuration, baseStripCount];
-    }, [viewport.width, viewport.height]);
+    const resetStrips = useCallback(() => {
+        setStrips([]);
+    }, []);
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -29,39 +20,21 @@ const Scene = () => {
         return `${day} ${dateStr} at ${timeStr}`.toUpperCase();
     };
 
-    const createStrip = useCallback((date, yOffset = 0) => {
-        const formattedTime = formatTime(date);
-        const spawnY = viewport.height / 2 + 0.5 - yOffset;
-        const spawnX = 0;
-
-        return {
-            id: date.getTime(),
-            time: formattedTime,
-            position: [spawnX, spawnY, 0],
-        };
-    }, [viewport.height]);
-
-    // Initialize strips with prerolled content
-    const [strips, setStrips] = useState(() => {
-        const now = new Date();
-        return Array.from({ length: stripCount }, (_, index) =>
-            createStrip(new Date(now.getTime() - index * 1000), index)
-        ).reverse();
-    });
-
     const addStrip = useCallback(() => {
         const now = new Date();
-        setStrips((prevStrips) => [createStrip(now), ...prevStrips.slice(0, stripCount - 1)]);
-    }, [createStrip, stripCount]);
+        const formattedTime = formatTime(now);
+        const spawnY = viewport.height / 2 + 0.5; // Spawn above the viewport
+        const spawnX = 0; // Center of the screen
 
-    const resetStrips = useCallback(() => {
-        const now = new Date();
-        setStrips(
-            Array.from({ length: stripCount }, (_, index) =>
-                createStrip(new Date(now.getTime() - index * 1000), index)
-            ).reverse()
-        );
-    }, [createStrip, stripCount]);
+        setStrips((prevStrips) => [
+            {
+                id: now.getTime(),
+                time: formattedTime,
+                position: [spawnX, spawnY, 0],
+            },
+            ...prevStrips,
+        ]);
+    }, [viewport.height]);
 
     useEffect(() => {
         let interval = setInterval(addStrip, 1000);
@@ -113,7 +86,6 @@ const Scene = () => {
                         time={strip.time}
                         initialPosition={strip.position}
                         onRemove={removeStrip}
-                        fallDuration={fallDuration}
                     />
                 ))}
             </group>

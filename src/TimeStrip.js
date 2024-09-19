@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 
-const TimeStrip = ({ id, time, onRemove, fallDuration }) => {
+const TimeStrip = ({ id, time, onRemove }) => {
     const groupRef = useRef();
     const textRef = useRef();
     const boxRef = useRef();
@@ -59,7 +59,7 @@ const TimeStrip = ({ id, time, onRemove, fallDuration }) => {
 
         if (groupRef.current) {
             const elapsedTime = state.clock.getElapsedTime() - creationTime.current;
-            const duration = fallDuration; // Use the prop instead of hardcoded value
+            const duration = 7; // seconds
             const startY = viewport.height / 2 + 0.5;
             const endY = -viewport.height / 2 - 1;
             const totalDistance = startY - endY;
