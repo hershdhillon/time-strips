@@ -76,7 +76,7 @@ const Scene = () => {
             position={[0, 0, -5]}
             width={viewport.width * 3}
             height={viewport.height * 3}
-            count={20000}
+            count={50000}
         />
     ), [viewport.width, viewport.height]);
 
