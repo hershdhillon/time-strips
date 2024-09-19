@@ -8,6 +8,7 @@ const Scene = () => {
     const [strips, setStrips] = useState([]);
     const { viewport } = useThree();
     const sandFallRef = useRef();
+    const intervalRef = useRef();
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -20,8 +21,8 @@ const Scene = () => {
     const createStrip = useCallback(() => {
         const now = new Date();
         const formattedTime = formatTime(now);
-        const spawnY = viewport.height / 2 + 0.5; // Spawn above the viewport
-        const spawnX = 0; // Center of the screen
+        const spawnY = viewport.height / 2 + 0.5;
+        const spawnX = 0;
 
         return {
             id: now.getTime(),
@@ -35,36 +36,50 @@ const Scene = () => {
     }, [createStrip]);
 
     const resetScene = useCallback(() => {
-        setStrips([createStrip()]); // Reset to a single strip
+        setStrips([createStrip()]);
         if (sandFallRef.current) {
-            sandFallRef.current.reset(); // Reset the SandFall component
+            sandFallRef.current.reset();
         }
     }, [createStrip]);
 
-    useEffect(() => {
-        let interval;
+    const startInterval = useCallback(() => {
+        clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(addStrip, 1000);
+    }, [addStrip]);
 
+    const stopInterval = useCallback(() => {
+        clearInterval(intervalRef.current);
+    }, []);
+
+    useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden) {
-                clearInterval(interval);
+                stopInterval();
             } else {
                 resetScene();
-                interval = setInterval(addStrip, 1000);
+                startInterval();
             }
+        };
+
+        const handleBlur = () => {
+            resetScene();
+            startInterval();
         };
 
         // Initial setup
         resetScene();
-        interval = setInterval(addStrip, 1000);
+        startInterval();
 
-        // Add visibility change listener
+        // Add event listeners
         document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
 
         return () => {
-            clearInterval(interval);
+            stopInterval();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('blur', handleBlur);
         };
-    }, [addStrip, resetScene]);
+    }, [resetScene, startInterval, stopInterval]);
 
     const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
