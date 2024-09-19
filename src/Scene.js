@@ -8,18 +8,15 @@ const Scene = () => {
     const { viewport } = useThree();
     const sandFallRef = useRef();
 
-    // Calculate the fall duration and strip count based on aspect ratio
-    const [fallDuration, stripCount] = useMemo(() => {
+    // Calculate the fall duration based on aspect ratio
+    const fallDuration = useMemo(() => {
         const aspectRatio = viewport.width / viewport.height;
         const baseDuration = 7; // seconds
-        const baseStripCount = 7; // number of strips for base duration
 
         if (aspectRatio < 1) { // Portrait mode (e.g., phones)
-            const factor = 1 / aspectRatio;
-            const adjustedDuration = baseDuration * factor;
-            return [adjustedDuration, Math.ceil(baseStripCount * factor)];
+            return baseDuration * (1 / aspectRatio);
         }
-        return [baseDuration, baseStripCount];
+        return baseDuration;
     }, [viewport.width, viewport.height]);
 
     const formatTime = (date) => {
@@ -30,39 +27,29 @@ const Scene = () => {
         return `${day} ${dateStr} at ${timeStr}`.toUpperCase();
     };
 
-    const createStrip = useCallback((date, yOffset = 0) => {
-        const formattedTime = formatTime(date);
-        const spawnY = viewport.height / 2 + 0.5 - yOffset;
+    const createStrip = useCallback(() => {
+        const now = new Date();
+        const formattedTime = formatTime(now);
+        const spawnY = viewport.height / 2 + 0.5;
         const spawnX = 0;
 
         return {
-            id: date.getTime(),
+            id: now.getTime(),
             time: formattedTime,
             position: [spawnX, spawnY, 0],
         };
     }, [viewport.height]);
 
-    // Initialize strips with prerolled content
-    const [strips, setStrips] = useState(() => {
-        const now = new Date();
-        return Array.from({ length: stripCount }, (_, index) =>
-            createStrip(new Date(now.getTime() - index * 1000), index)
-        ).reverse();
-    });
+    // Initialize with a single strip
+    const [strips, setStrips] = useState(() => [createStrip()]);
 
     const addStrip = useCallback(() => {
-        const now = new Date();
-        setStrips((prevStrips) => [createStrip(now), ...prevStrips.slice(0)]);
-    }, [createStrip, stripCount]);
+        setStrips((prevStrips) => [createStrip(), ...prevStrips]);
+    }, [createStrip]);
 
     const resetStrips = useCallback(() => {
-        const now = new Date();
-        setStrips(
-            Array.from({ length: stripCount }, (_, index) =>
-                createStrip(new Date(now.getTime() - index * 1000), index)
-            ).reverse()
-        );
-    }, [createStrip, stripCount]);
+        setStrips([createStrip()]);
+    }, [createStrip]);
 
     const removeStrip = useCallback((id) => {
         setStrips((prevStrips) => prevStrips.filter((strip) => strip.id !== id));
