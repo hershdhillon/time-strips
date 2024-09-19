@@ -8,16 +8,13 @@ const Scene = () => {
     const { viewport } = useThree();
     const sandFallRef = useRef();
 
-    // Calculate the fall duration based on aspect ratio
+    // Calculate the fall duration based on a fixed reference height
     const fallDuration = useMemo(() => {
-        const aspectRatio = viewport.width / viewport.height;
+        const referenceHeight = 10; // A fixed reference height
         const baseDuration = 7; // seconds
-
-        if (aspectRatio < 1) { // Portrait mode (e.g., phones)
-            return baseDuration * (1 / aspectRatio);
-        }
-        return baseDuration;
-    }, [viewport.width, viewport.height]);
+        const scaleFactor = Math.sqrt(referenceHeight / viewport.height);
+        return baseDuration * scaleFactor;
+    }, [viewport.height]);
 
     const formatTime = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
